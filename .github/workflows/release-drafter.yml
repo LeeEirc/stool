@@ -46,6 +46,6 @@ jobs:
         with:
           draft: true
           files: |
-            build/*
+            build/stool-*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
