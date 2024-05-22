@@ -16,14 +16,14 @@ LDFLAGS=-w -s
 
 BUILDCMD=CGO_ENABLED=0 go build -trimpath -ldflags "${LDFLAGS}"
 
-CURRENT_OS_ARCH = $(shell go env GOOS)-$(shell go env GOARCH)
+CURRENT_OS_ARCH=$(shell go env GOOS)-$(shell go env GOARCH)
 
 define make_artifact_full
 	GOOS=$(1) GOARCH=$(2) $(BUILDCMD) -o $(BUILDDIR)/$(NAME)-$(1)-$(2) .
 endef
 
-build:
-	$(KOKOBUILD) -o $(BUILDDIR)/$(NAME)-$(CURRENT_OS_ARCH) $(KOKOSRCFILE)
+build-local:
+	$(BUILDCMD) -o $(BUILDDIR)/$(NAME)-$(CURRENT_OS_ARCH)
 
 
 all:
