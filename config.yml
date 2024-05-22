@@ -1,0 +1,10 @@
+# 服务端地址
+CORE_HOST: http://localhost:8080
+# 认证 Token
+PRIVATE_TOKEN: 123456789
+# 需要扫描的录像目录
+REPLAY_PATHS:
+  - /data/jumpserver/koko/data/replays
+  - /data/jumpserver/lion/data/replays
+  - /data/jumpserver/razor/data/replays
+  - /data/jumpserver/xrdp/data/replays
