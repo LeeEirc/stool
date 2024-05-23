@@ -8,3 +8,5 @@ REPLAY_PATHS:
   - /data/jumpserver/lion/data/replays
   - /data/jumpserver/razor/data/replays
   - /data/jumpserver/xrdp/data/replays
+
+OverWriteReplay: false

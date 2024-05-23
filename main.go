@@ -26,6 +26,7 @@ func main() {
 		c := Component{
 			Name:       path,
 			ReplayPath: path,
+			cfg:        cfg,
 		}
 		components = append(components, c)
 	}
@@ -74,10 +75,14 @@ func handleComponent(wg *sync.WaitGroup, c *Component, apiClient *service.JMServ
 			slog.Error("Not finished session " + f.ID)
 			continue
 		}
-		if !session.HasReplay {
-			msg = fmt.Sprintf("Session %s alreay have replay", f.ID)
-			slog.Error(msg)
-			continue
+		if session.HasReplay {
+			if !c.cfg.OverWriteReplay {
+				msg = fmt.Sprintf("Session %s alreay have replay", f.ID)
+				slog.Error(msg)
+				continue
+			}
+			msg = fmt.Sprintf("Session %s alreay have replay, try to overwrite it", f.ID)
+			slog.Info(msg)
 		}
 		msg = fmt.Sprintf("Uploading session replay file %s", f.AbsFilePath)
 		// 上传录像，并删除录像文件

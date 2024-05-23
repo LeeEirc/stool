@@ -10,6 +10,7 @@ import (
 type Component struct {
 	Name       string
 	ReplayPath string
+	cfg        *Config
 }
 
 func (c *Component) ScanSessionReplays() []ReplayFile {

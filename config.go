@@ -12,6 +12,8 @@ type Config struct {
 	CoreHost     string   `mapstructure:"CORE_HOST"`
 	PrivateToken string   `mapstructure:"PRIVATE_TOKEN"`
 	ReplayPaths  []string `mapstructure:"REPLAY_PATHS"`
+
+	OverWriteReplay bool `mapstructure:"OverWriteReplay"`
 }
 
 func LoadConfig(cfgPath string) *Config {
