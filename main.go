@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
 	"sync"
@@ -56,39 +57,52 @@ func handleComponent(wg *sync.WaitGroup, c *Component, apiClient *service.JMServ
 	defer wg.Done()
 	files := c.ScanSessionReplays()
 	for _, f := range files {
-		slog.Info("handle replay file: %s", f.AbsFilePath)
+		msg := fmt.Sprintf("Start handle replay file: %s", f.AbsFilePath)
+		slog.Info(msg)
 
 		session, err := apiClient.GetSessionById(f.ID)
 		if err != nil {
-			slog.Error("get session %s failed: %s", f.ID, err)
+			msg = fmt.Sprintf("Get session %s failed: %s", f.ID, err)
+			slog.Error(msg)
 			continue
 		}
 		if session.ID == "" {
-			slog.Warn("session %s not found", f.ID)
+			slog.Error("Not found session " + f.ID)
 			continue
 		}
 		if !session.IsFinished {
-			slog.Warn("session %s not finished", f.ID)
+			slog.Error("Not finished session " + f.ID)
 			continue
 		}
 		if !session.HasReplay {
-			slog.Warn("session %s has replay", f.ID)
+			msg = fmt.Sprintf("Session %s alreay have replay", f.ID)
+			slog.Error(msg)
 			continue
 		}
+		msg = fmt.Sprintf("Uploading session replay file %s", f.AbsFilePath)
 		// 上传录像，并删除录像文件
-		if err := apiClient.UploadReplay(f.ID, f.AbsFilePath); err != nil {
-			slog.Error("upload replay %s failed: %s", f.ID, err)
+		if err1 := apiClient.UploadReplay(f.ID, f.AbsFilePath); err1 != nil {
+			msg = fmt.Sprintf("Uploading replay %s failed: %s", f.ID, err1)
+			slog.Error(msg)
 			continue
 		}
-		if err := apiClient.FinishReply(f.ID); err != nil {
-			slog.Error("finish replay %s failed: %s", f.ID, err)
+		msg = fmt.Sprintf("Upload replay file %s success", f.AbsFilePath)
+		slog.Info(msg)
+		if err2 := apiClient.FinishReply(f.ID); err2 != nil {
+			errMsg := fmt.Sprintf("Finish replay %s failed: %s", f.ID, err2)
+			slog.Error(errMsg)
 			continue
 		}
-		slog.Info("handle replay file: %s success", f.AbsFilePath)
+		msg = fmt.Sprintf("Finish session %s success", f.ID)
+		slog.Info(msg)
 		if err1 := os.Remove(f.AbsFilePath); err1 != nil {
-			slog.Error("delete replay file %s failed: %s", f.AbsFilePath, err1)
+			errMsg := fmt.Sprintf("Delete replay file %s failed: %s", f.AbsFilePath, err1)
+			slog.Error(errMsg)
 			continue
 		}
-		slog.Info("delete replay file %s success", f.AbsFilePath)
+		msg = fmt.Sprintf("Delete replay file %s success", f.AbsFilePath)
+		slog.Info(msg)
+		msg = fmt.Sprintf("Finish handle replay file %s", f.AbsFilePath)
+		slog.Info(msg)
 	}
 }
