@@ -31,10 +31,12 @@ func main() {
 		components = append(components, c)
 	}
 	sign := httplib.PrivateTokenAuth{Token: cfg.PrivateToken}
-	apiClient, err := service.NewAuthJMService(service.JMSCoreHost(
-		cfg.CoreHost), service.JMSTimeOut(30*time.Second),
-		service.JMSAuthSign(&sign),
-	)
+	opts := make([]service.Option, 0)
+	opts = append(opts, service.JMSCoreHost(cfg.CoreHost))
+	opts = append(opts, service.JMSTimeOut(30*time.Second))
+	opts = append(opts, service.JMSAuthSign(&sign))
+	opts = append(opts, service.JMSInsecure())
+	apiClient, err := service.NewAuthJMService(opts...)
 	if err != nil {
 		slog.Error("create jms service failed: " + err.Error())
 		os.Exit(1)
@@ -84,30 +86,34 @@ func handleComponent(wg *sync.WaitGroup, c *Component, apiClient *service.JMServ
 			msg = fmt.Sprintf("Session %s alreay have replay, try to overwrite it", f.ID)
 			slog.Info(msg)
 		}
-		msg = fmt.Sprintf("Uploading session replay file %s", f.AbsFilePath)
-		// 上传录像，并删除录像文件
-		if err1 := apiClient.UploadReplay(f.ID, f.AbsFilePath); err1 != nil {
-			msg = fmt.Sprintf("Uploading replay %s failed: %s", f.ID, err1)
-			slog.Error(msg)
-			continue
-		}
-		msg = fmt.Sprintf("Upload replay file %s success", f.AbsFilePath)
-		slog.Info(msg)
-		if err2 := apiClient.FinishReply(f.ID); err2 != nil {
-			errMsg := fmt.Sprintf("Finish replay %s failed: %s", f.ID, err2)
-			slog.Error(errMsg)
-			continue
-		}
-		msg = fmt.Sprintf("Finish session %s success", f.ID)
-		slog.Info(msg)
-		if err1 := os.Remove(f.AbsFilePath); err1 != nil {
-			errMsg := fmt.Sprintf("Delete replay file %s failed: %s", f.AbsFilePath, err1)
-			slog.Error(errMsg)
-			continue
-		}
-		msg = fmt.Sprintf("Delete replay file %s success", f.AbsFilePath)
-		slog.Info(msg)
-		msg = fmt.Sprintf("Finish handle replay file %s", f.AbsFilePath)
-		slog.Info(msg)
+		handleReplayFile(&f, apiClient)
 	}
+}
+
+func handleReplayFile(f *ReplayFile, apiClient *service.JMService) {
+	msg := fmt.Sprintf("Uploading session replay file %s", f.AbsFilePath)
+	// 上传录像，并删除录像文件
+	if err1 := apiClient.UploadReplay(f.ID, f.AbsFilePath); err1 != nil {
+		msg = fmt.Sprintf("Uploading replay %s failed: %s", f.ID, err1)
+		slog.Error(msg)
+		return
+	}
+	msg = fmt.Sprintf("Upload replay file %s success", f.AbsFilePath)
+	slog.Info(msg)
+	if err2 := apiClient.FinishReply(f.ID); err2 != nil {
+		errMsg := fmt.Sprintf("Finish replay %s failed: %s", f.ID, err2)
+		slog.Error(errMsg)
+		return
+	}
+	msg = fmt.Sprintf("Finish session %s success", f.ID)
+	slog.Info(msg)
+	if err1 := os.Remove(f.AbsFilePath); err1 != nil {
+		errMsg := fmt.Sprintf("Delete replay file %s failed: %s", f.AbsFilePath, err1)
+		slog.Error(errMsg)
+		return
+	}
+	msg = fmt.Sprintf("Delete replay file %s success", f.AbsFilePath)
+	slog.Info(msg)
+	msg = fmt.Sprintf("Finish handle replay file %s", f.AbsFilePath)
+	slog.Info(msg)
 }

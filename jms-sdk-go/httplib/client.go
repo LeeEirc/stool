@@ -30,7 +30,19 @@ func init() {
 
 const miniTimeout = time.Second * 30
 
-func NewClient(baseUrl string, timeout time.Duration) (*Client, error) {
+type Opt func(*opt)
+
+type opt struct {
+	insecure bool
+}
+
+func WithInsecure() Opt {
+	return func(c *opt) {
+		c.insecure = true
+	}
+}
+
+func NewClient(baseUrl string, timeout time.Duration, settings ...Opt) (*Client, error) {
 	_, err := url.Parse(baseUrl)
 	if err != nil {
 		return nil, err
@@ -38,15 +50,21 @@ func NewClient(baseUrl string, timeout time.Duration) (*Client, error) {
 	if timeout < miniTimeout {
 		timeout = miniTimeout
 	}
+	var cfg opt
+	for _, setter := range settings {
+		setter(&cfg)
+	}
 
 	jar := &customCookieJar{
 		data: map[string]string{},
 	}
 	con := http.Client{
-		Timeout: timeout,
-		Jar:     jar,
+		Timeout:   timeout,
+		Jar:       jar,
+		Transport: NewTransport(cfg.insecure),
 	}
 	return &Client{
+		cfg:     &cfg,
 		Timeout: timeout,
 		baseUrl: baseUrl,
 		cookies: make(map[string]string),
@@ -62,6 +80,7 @@ type Client struct {
 	headers  map[string]string
 	http     *http.Client
 	authSign AuthSign
+	cfg      *opt
 }
 
 func (c *Client) Clone() Client {
@@ -69,8 +88,9 @@ func (c *Client) Clone() Client {
 		data: map[string]string{},
 	}
 	con := http.Client{
-		Timeout: c.Timeout,
-		Jar:     jar,
+		Timeout:   c.Timeout,
+		Jar:       jar,
+		Transport: NewTransport(c.cfg.insecure),
 	}
 	return Client{
 		Timeout: c.Timeout,

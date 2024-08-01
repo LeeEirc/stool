@@ -13,6 +13,7 @@ type option struct {
 	TimeOut   time.Duration
 	sign      httplib.AuthSign
 	accessKey model.AccessKey
+	Insecure  bool
 }
 
 type Option func(*option)
@@ -45,5 +46,11 @@ func JMSAccessKey(keyID, secretID string) Option {
 func JMSAuthSign(sign httplib.AuthSign) Option {
 	return func(o *option) {
 		o.sign = sign
+	}
+}
+
+func JMSInsecure() Option {
+	return func(o *option) {
+		o.Insecure = true
 	}
 }

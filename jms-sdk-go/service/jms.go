@@ -36,7 +36,12 @@ func NewAuthJMService(opts ...Option) (*JMService, error) {
 	if opt.TimeOut < minTimeOut {
 		opt.TimeOut = minTimeOut
 	}
-	httpClient, err := httplib.NewClient(opt.CoreHost, opt.TimeOut)
+	httpOpts := make([]httplib.Opt, 0)
+	if opt.Insecure {
+		httpOpts = append(httpOpts, httplib.WithInsecure())
+	}
+
+	httpClient, err := httplib.NewClient(opt.CoreHost, opt.TimeOut, httpOpts...)
 	if err != nil {
 		return nil, err
 	}
