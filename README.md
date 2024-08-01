@@ -17,5 +17,5 @@ touch /data/stool/stool.yaml
 
 4、启动服务
 ```shell
-/data/stool/stool-linux-amd64 -c /data/stool/stool.yaml &
+/data/stool/stool-linux-amd64 -c /data/stool/stool.yaml
 ```
