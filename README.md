@@ -5,7 +5,7 @@
 mkdir -p /data/stool
 ```
 
-2、从 release 下载 stool 执行文件
+2、从 release 下载 stool 执行文件 (注：根据系统选择对应的执行文件)
 ```shell
 wget https://github.com/LeeEirc/stool/releases/download/v0.0.4/stool-linux-amd64 -O /data/stool/stool-linux-amd64
 ```
