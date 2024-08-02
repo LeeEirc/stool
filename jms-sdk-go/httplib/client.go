@@ -290,6 +290,9 @@ func (c *Client) PostFileWithFields(reqUrl string, gFile string, fields map[stri
 	client := http.Client{
 		Jar: c.http.Jar,
 	}
+	if c.cfg.insecure {
+		client.Transport = NewTransport(true)
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
